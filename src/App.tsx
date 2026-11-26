@@ -9,8 +9,18 @@ import InventarioPage from "./pages/InventarioPage";
 import PagosPage from "./pages/PagosPage";
 import ServiciosPage from "./pages/ServiciosPage";
 import logoFranCosturas from "./assets/logo-fran-costuras.png";
-import IconoCostura from "./components/IconoCostura";
+import IconoFC, { type NombreIconoFC } from "./components/IconoFC";
+import { iniciales } from "./components/iniciales";
 import InicioAdminPage from "./pages/InicioAdminPage";
+
+const SECCIONES: { ruta: string; texto: string; icono: NombreIconoFC }[] = [
+  { ruta: "/", texto: "Resumen", icono: "resumen" },
+  { ruta: "/usuarios", texto: "Usuarios", icono: "equipo" },
+  { ruta: "/pedidos", texto: "Pedidos", icono: "tijeras" },
+  { ruta: "/inventario", texto: "Inventario", icono: "inventario" },
+  { ruta: "/servicios", texto: "Servicios y tarifas", icono: "servicios" },
+  { ruta: "/pagos", texto: "Pagos", icono: "pagos" },
+];
 
 const CLAVE_ACTIVIDAD = "fc_ultima_actividad";
 const TREINTA_MINUTOS = 30 * 60 * 1000;
@@ -104,17 +114,17 @@ export default function App() {
   const inicio = requiereCambio ? "/cambiar-contrasena" : "/";
 
   return (
-    <div className="fc-app-shell">
-      {!autenticado || requiereCambio ? (
-        <header className="container py-3 d-flex align-items-center">
-          <Link to={autenticado ? inicio : "/login"} className="fc-brand-link">
-            Fran-Costuras
-          </Link>
-        </header>
-      ) : (
-        <header className="navbar navbar-expand-lg fc-navbar sticky-top">
-          <div className="container-fluid px-3 px-lg-4">
-            <Link to="/" className="navbar-brand fc-brand-link">
+    <div
+      className={`fc-app-shell ${autenticado && !requiereCambio ? "fc-app-shell--panel" : ""}`}
+    >
+      {autenticado && !requiereCambio && (
+        <aside className="fc-sidebar" aria-label="Panel de administración">
+          <div className="fc-sidebar__top">
+            <Link
+              to="/"
+              className="fc-sidebar__brand"
+              onClick={() => setMenuAbierto(false)}
+            >
               <img
                 className="fc-brand-logo"
                 src={logoFranCosturas}
@@ -122,197 +132,178 @@ export default function App() {
               />
             </Link>
             <button
-              className="navbar-toggler"
+              className="fc-sidebar__toggle"
               type="button"
               onClick={() => setMenuAbierto((abierto) => !abierto)}
               aria-controls="fcNavigation"
               aria-expanded={menuAbierto}
               aria-label="Mostrar navegación"
             >
-              <span className="navbar-toggler-icon" />
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
             </button>
-            <nav
-              className={`navbar-collapse ${menuAbierto ? "d-block" : "d-none"} d-lg-flex`}
-              id="fcNavigation"
-              aria-label="Navegación principal"
-            >
-              <div className="navbar-nav me-auto">
-                <Link
-                  onClick={() => setMenuAbierto(false)}
-                  className={`nav-link ${ubicacion.pathname === "/" ? "active" : ""}`}
-                  to="/"
-                >
-                  <IconoCostura tipo="puntada" size={17} /> Resumen
-                </Link>
-                <Link
-                  onClick={() => setMenuAbierto(false)}
-                  className={`nav-link ${ubicacion.pathname === "/usuarios" ? "active" : ""}`}
-                  to="/usuarios"
-                >
-                  <IconoCostura tipo="aguja" size={17} /> Usuarios
-                </Link>
-                <Link
-                  onClick={() => setMenuAbierto(false)}
-                  className={`nav-link ${ubicacion.pathname === "/pedidos" ? "active" : ""}`}
-                  to="/pedidos"
-                >
-                  <IconoCostura tipo="tijeras" size={17} /> Pedidos
-                </Link>
-                <Link
-                  onClick={() => setMenuAbierto(false)}
-                  className={`nav-link ${ubicacion.pathname === "/inventario" ? "active" : ""}`}
-                  to="/inventario"
-                >
-                  <IconoCostura tipo="cinta" size={17} /> Inventario
-                </Link>
-                <Link
-                  onClick={() => setMenuAbierto(false)}
-                  className={`nav-link ${ubicacion.pathname === "/servicios" ? "active" : ""}`}
-                  to="/servicios"
-                >
-                  <IconoCostura tipo="carrete" size={17} /> Servicios y tarifas
-                </Link>
-                <Link
-                  onClick={() => setMenuAbierto(false)}
-                  className={`nav-link ${ubicacion.pathname === "/pagos" ? "active" : ""}`}
-                  to="/pagos"
-                >
-                  <IconoCostura tipo="puntada" size={17} /> Pagos
-                </Link>
-              </div>
-              <div className="d-flex align-items-center gap-3 py-2 py-lg-0">
-                <span className="fc-user-label">
-                  {usuario.nombre} <small>Administradora</small>
-                </span>
-                <button
-                  className="btn btn-outline-primary btn-sm"
-                  onClick={() => {
-                    void cerrarSesion().finally(() => setUsuario(null));
-                  }}
-                >
-                  Cerrar sesión
-                </button>
-              </div>
-            </nav>
           </div>
-        </header>
+          <div
+            id="fcNavigation"
+            className={`fc-sidebar__body ${menuAbierto ? "is-open" : ""}`}
+          >
+            <p className="fc-eyebrow fc-sidebar__label" aria-hidden="true">
+              PANEL DE ADMINISTRACIÓN
+            </p>
+            <nav className="fc-sidebar__nav" aria-label="Navegación principal">
+              {SECCIONES.map((seccion) => (
+                <Link
+                  key={seccion.ruta}
+                  onClick={() => setMenuAbierto(false)}
+                  className={`fc-nav-item ${ubicacion.pathname === seccion.ruta ? "active" : ""}`}
+                  aria-current={
+                    ubicacion.pathname === seccion.ruta ? "page" : undefined
+                  }
+                  to={seccion.ruta}
+                >
+                  <IconoFC nombre={seccion.icono} size={20} /> {seccion.texto}
+                </Link>
+              ))}
+            </nav>
+            <div className="fc-sidebar__spacer" />
+            <div className="fc-session-card">
+              <span className="fc-avatar fc-avatar--rosa" aria-hidden="true">
+                {iniciales(usuario.nombre)}
+              </span>
+              <span className="fc-user-label">
+                {usuario.nombre} <small>Administradora</small>
+              </span>
+            </div>
+            <button
+              className="btn btn-outline-primary w-100"
+              onClick={() => {
+                void cerrarSesion().finally(() => setUsuario(null));
+              }}
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        </aside>
       )}
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            autenticado ? (
-              <Navigate to={inicio} replace />
-            ) : (
-              <LoginPage onAutenticado={setUsuario} />
-            )
-          }
-        />
-        <Route
-          path="/cambiar-contrasena"
-          element={
-            !autenticado ? (
-              <Navigate to="/login" replace />
-            ) : !requiereCambio ? (
-              <Navigate to="/" replace />
-            ) : (
-              <CambiarContrasenaPage
-                onCorrecto={() =>
-                  setUsuario((u) =>
-                    u ? { ...u, debe_cambiar_contraseña: false } : u,
-                  )
-                }
-              />
-            )
-          }
-        />
-        <Route
-          path="/"
-          element={
-            !autenticado ? (
-              <Navigate to="/login" replace />
-            ) : requiereCambio ? (
-              <Navigate to="/cambiar-contrasena" replace />
-            ) : (
-              <InicioAdminPage />
-            )
-          }
-        />
-        <Route
-          path="/usuarios"
-          element={
-            !autenticado ? (
-              <Navigate to="/login" replace />
-            ) : requiereCambio ? (
-              <Navigate to="/cambiar-contrasena" replace />
-            ) : usuario?.rol === "administradora" ? (
-              <UsuariosPage actual={usuario} />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-        <Route
-          path="/pedidos"
-          element={
-            !autenticado ? (
-              <Navigate to="/login" replace />
-            ) : requiereCambio ? (
-              <Navigate to="/cambiar-contrasena" replace />
-            ) : usuario?.rol === "administradora" ? (
-              <PedidosAdminPage />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-        <Route
-          path="/inventario"
-          element={
-            !autenticado ? (
-              <Navigate to="/login" replace />
-            ) : requiereCambio ? (
-              <Navigate to="/cambiar-contrasena" replace />
-            ) : usuario?.rol === "administradora" ? (
-              <InventarioPage />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-        <Route
-          path="/pagos"
-          element={
-            !autenticado ? (
-              <Navigate to="/login" replace />
-            ) : requiereCambio ? (
-              <Navigate to="/cambiar-contrasena" replace />
-            ) : usuario?.rol === "administradora" ? (
-              <PagosPage />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-        <Route
-          path="/servicios"
-          element={
-            !autenticado ? (
-              <Navigate to="/login" replace />
-            ) : requiereCambio ? (
-              <Navigate to="/cambiar-contrasena" replace />
-            ) : usuario?.rol === "administradora" ? (
-              <ServiciosPage />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-        <Route
-          path="*"
-          element={<Navigate to={autenticado ? inicio : "/login"} replace />}
-        />
-      </Routes>
+      <div className="fc-app-content">
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              autenticado ? (
+                <Navigate to={inicio} replace />
+              ) : (
+                <LoginPage onAutenticado={setUsuario} />
+              )
+            }
+          />
+          <Route
+            path="/cambiar-contrasena"
+            element={
+              !autenticado ? (
+                <Navigate to="/login" replace />
+              ) : !requiereCambio ? (
+                <Navigate to="/" replace />
+              ) : (
+                <CambiarContrasenaPage
+                  onCorrecto={() =>
+                    setUsuario((u) =>
+                      u ? { ...u, debe_cambiar_contraseña: false } : u,
+                    )
+                  }
+                />
+              )
+            }
+          />
+          <Route
+            path="/"
+            element={
+              !autenticado ? (
+                <Navigate to="/login" replace />
+              ) : requiereCambio ? (
+                <Navigate to="/cambiar-contrasena" replace />
+              ) : (
+                <InicioAdminPage />
+              )
+            }
+          />
+          <Route
+            path="/usuarios"
+            element={
+              !autenticado ? (
+                <Navigate to="/login" replace />
+              ) : requiereCambio ? (
+                <Navigate to="/cambiar-contrasena" replace />
+              ) : usuario?.rol === "administradora" ? (
+                <UsuariosPage actual={usuario} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/pedidos"
+            element={
+              !autenticado ? (
+                <Navigate to="/login" replace />
+              ) : requiereCambio ? (
+                <Navigate to="/cambiar-contrasena" replace />
+              ) : usuario?.rol === "administradora" ? (
+                <PedidosAdminPage />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/inventario"
+            element={
+              !autenticado ? (
+                <Navigate to="/login" replace />
+              ) : requiereCambio ? (
+                <Navigate to="/cambiar-contrasena" replace />
+              ) : usuario?.rol === "administradora" ? (
+                <InventarioPage />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/pagos"
+            element={
+              !autenticado ? (
+                <Navigate to="/login" replace />
+              ) : requiereCambio ? (
+                <Navigate to="/cambiar-contrasena" replace />
+              ) : usuario?.rol === "administradora" ? (
+                <PagosPage />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/servicios"
+            element={
+              !autenticado ? (
+                <Navigate to="/login" replace />
+              ) : requiereCambio ? (
+                <Navigate to="/cambiar-contrasena" replace />
+              ) : usuario?.rol === "administradora" ? (
+                <ServiciosPage />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="*"
+            element={<Navigate to={autenticado ? inicio : "/login"} replace />}
+          />
+        </Routes>
+      </div>
     </div>
   );
 }

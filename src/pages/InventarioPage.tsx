@@ -7,6 +7,9 @@ import {
   mensajeError,
   type Tela,
 } from "../api/client";
+import EncabezadoPagina from "../components/EncabezadoPagina";
+import IconoFC from "../components/IconoFC";
+import InsigniaEstado from "../components/InsigniaEstado";
 
 export default function InventarioPage() {
   const [telas, setTelas] = useState<Tela[]>([]);
@@ -94,48 +97,170 @@ export default function InventarioPage() {
   }
 
   return (
-    <main className="container py-4">
-      <h1 className="h2 mb-3" style={{ color: "var(--fc-titulo)" }}>
-        Inventario de telas
-      </h1>
+    <main className="fc-page">
+      <EncabezadoPagina etiqueta="INVENTARIO" titulo="Inventario de telas" />
       {error && (
-        <div
-          className="alert"
-          role="alert"
-          style={{ backgroundColor: "var(--fc-error)", color: "#fff" }}
-        >
-          {error}
+        <div className="alert alert-danger fc-alert" role="alert">
+          <IconoFC nombre="alerta" size={18} />
+          <span>{error}</span>
         </div>
       )}
       {mensaje && (
-        <div className="alert alert-success" role="status">
-          {mensaje}
+        <div className="alert alert-success fc-alert" role="status">
+          <IconoFC nombre="cheque" size={18} />
+          <span>{mensaje}</span>
         </div>
       )}
+      <section className="fc-metrics fc-metrics--2" aria-label="Inventario">
+        <article className="fc-metric">
+          <span className="fc-metric__head">
+            <span className="fc-bubble">
+              <IconoFC nombre="inventario" />
+            </span>
+            <small>Telas</small>
+          </span>
+          <strong>{total}</strong>
+        </article>
+        <article className="fc-metric">
+          <span className="fc-metric__head">
+            <span className="fc-bubble">
+              <IconoFC nombre="alerta" />
+            </span>
+            <small>Stock bajo</small>
+          </span>
+          <strong>{alertas.length}</strong>
+        </article>
+      </section>
       {alertas.length > 0 && (
-        <section
-          className="alert"
-          role="status"
-          style={{ backgroundColor: "var(--fc-error)", color: "#fff" }}
-        >
-          <h2 className="h5">Stock bajo</h2>
-          <ul className="mb-0">
-            {alertas.map((tela) => (
-              <li key={tela.id}>
-                {tela.nombre} ({tela.color}): {tela.metros_disponibles} m;
-                mínimo {tela.stock_minimo} m
-              </li>
-            ))}
-          </ul>
+        <section className="fc-alert-panel" role="status">
+          <IconoFC nombre="alerta" size={22} />
+          <div>
+            <h2>Stock bajo</h2>
+            <ul className="mb-0">
+              {alertas.map((tela) => (
+                <li key={tela.id}>
+                  {tela.nombre} ({tela.color}): {tela.metros_disponibles} m;
+                  mínimo {tela.stock_minimo} m
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       )}
-      <section className="card border-0 shadow-sm mb-4">
-        <div className="card-body">
-          <h2 className="h5" style={{ color: "var(--fc-titulo)" }}>
+      <div className="fc-split">
+        <section className="fc-split__main" aria-labelledby="telas-lista">
+          <div className="fc-table-card">
+            <h2 id="telas-lista" className="fc-table-card__title">
+              Telas ({total})
+            </h2>
+            {cargando ? (
+              <p className="fc-table-card__empty" aria-live="polite">
+                Cargando telas…
+              </p>
+            ) : (
+              <div className="table-responsive">
+                <table className="table fc-table align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Tela</th>
+                      <th>Color</th>
+                      <th>Proveedor</th>
+                      <th>Precio/m</th>
+                      <th>Stock (m)</th>
+                      <th>Mínimo (m)</th>
+                      <th>Ajustar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {telas.map((tela) => (
+                      <tr key={tela.id}>
+                        <td>
+                          <strong>{tela.nombre}</strong>
+                        </td>
+                        <td>{tela.color}</td>
+                        <td>{tela.proveedor}</td>
+                        <td>{tela.precio_metro}</td>
+                        <td>
+                          {tela.stock_bajo ? (
+                            <span className="fc-stock-low">
+                              <strong>{tela.metros_disponibles}</strong>
+                              <InsigniaEstado tono="error">
+                                Stock bajo
+                              </InsigniaEstado>
+                            </span>
+                          ) : (
+                            tela.metros_disponibles
+                          )}
+                        </td>
+                        <td>{tela.stock_minimo}</td>
+                        <td>
+                          <div className="fc-inline-form">
+                            <label
+                              className="visually-hidden"
+                              htmlFor={`stock-${tela.id}`}
+                            >
+                              Nuevo stock para {tela.nombre}
+                            </label>
+                            <input
+                              id={`stock-${tela.id}`}
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              className="form-control form-control-sm"
+                              value={ajustes[tela.id] ?? ""}
+                              onChange={(e) =>
+                                setAjustes((actual) => ({
+                                  ...actual,
+                                  [tela.id]: e.target.value,
+                                }))
+                              }
+                            />
+                            <button
+                              className="btn btn-sm btn-outline-primary fc-btn-icon"
+                              disabled={!ajustes[tela.id]}
+                              onClick={() => void guardarStock(tela)}
+                            >
+                              <IconoFC nombre="editar" size={16} />
+                              Guardar
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          <div className="fc-pagination">
+            <button
+              className="fc-link-btn"
+              disabled={pagina <= 1 || cargando}
+              onClick={() => setPagina((p) => p - 1)}
+            >
+              Anterior
+            </button>
+            <span className="fc-pagination__current">
+              Página {pagina} de {Math.max(1, Math.ceil(total / 20))}
+            </span>
+            <button
+              className="fc-link-btn"
+              disabled={pagina >= Math.ceil(total / 20) || cargando}
+              onClick={() => setPagina((p) => p + 1)}
+            >
+              Siguiente
+            </button>
+          </div>
+        </section>
+        <section
+          className="fc-panel fc-split__side"
+          aria-labelledby="tela-form-title"
+        >
+          <h2 id="tela-form-title" className="fc-panel__heading">
             Agregar tela
           </h2>
-          <form className="row g-3" onSubmit={(e) => void guardar(e)}>
-            <div className="col-12 col-md-6">
+          <form className="fc-form" onSubmit={(e) => void guardar(e)}>
+            <div>
               <label className="form-label" htmlFor="tela-nombre">
                 Nombre
               </label>
@@ -148,7 +273,7 @@ export default function InventarioPage() {
                 maxLength={120}
               />
             </div>
-            <div className="col-12 col-md-6">
+            <div>
               <label className="form-label" htmlFor="tela-color">
                 Color
               </label>
@@ -161,37 +286,39 @@ export default function InventarioPage() {
                 maxLength={80}
               />
             </div>
-            <div className="col-12 col-md-6">
-              <label className="form-label" htmlFor="tela-metros">
-                Metros disponibles
-              </label>
-              <input
-                id="tela-metros"
-                type="number"
-                min="0"
-                step="0.01"
-                className="form-control"
-                value={metros}
-                onChange={(e) => setMetros(e.target.value)}
-                required
-              />
+            <div className="fc-form__row">
+              <div>
+                <label className="form-label" htmlFor="tela-metros">
+                  Metros disponibles
+                </label>
+                <input
+                  id="tela-metros"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="form-control"
+                  value={metros}
+                  onChange={(e) => setMetros(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="form-label" htmlFor="tela-precio">
+                  Precio por metro
+                </label>
+                <input
+                  id="tela-precio"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  className="form-control"
+                  value={precio}
+                  onChange={(e) => setPrecio(e.target.value)}
+                  required
+                />
+              </div>
             </div>
-            <div className="col-12 col-md-6">
-              <label className="form-label" htmlFor="tela-precio">
-                Precio por metro
-              </label>
-              <input
-                id="tela-precio"
-                type="number"
-                min="0.01"
-                step="0.01"
-                className="form-control"
-                value={precio}
-                onChange={(e) => setPrecio(e.target.value)}
-                required
-              />
-            </div>
-            <div className="col-12 col-md-6">
+            <div>
               <label className="form-label" htmlFor="tela-proveedor">
                 Proveedor
               </label>
@@ -204,7 +331,7 @@ export default function InventarioPage() {
                 maxLength={150}
               />
             </div>
-            <div className="col-12 col-md-6">
+            <div>
               <label className="form-label" htmlFor="tela-minimo">
                 Stock mínimo (m)
               </label>
@@ -219,110 +346,10 @@ export default function InventarioPage() {
                 required
               />
             </div>
-            <div className="col-12">
-              <button className="btn btn-primary">Agregar tela</button>
-            </div>
+            <button className="btn btn-primary w-100">Agregar tela</button>
           </form>
-        </div>
-      </section>
-      <section className="card border-0 shadow-sm">
-        <div className="card-body">
-          <h2 className="h5" style={{ color: "var(--fc-titulo)" }}>
-            Telas ({total})
-          </h2>
-          {cargando ? (
-            <p aria-live="polite">Cargando telas…</p>
-          ) : (
-            <div className="table-responsive">
-              <table className="table align-middle">
-                <thead>
-                  <tr>
-                    <th>Tela</th>
-                    <th>Color</th>
-                    <th>Proveedor</th>
-                    <th>Precio/m</th>
-                    <th>Stock (m)</th>
-                    <th>Mínimo (m)</th>
-                    <th>Ajustar</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {telas.map((tela) => (
-                    <tr
-                      key={tela.id}
-                      style={
-                        tela.stock_bajo
-                          ? {
-                              backgroundColor: "var(--fc-error)",
-                              color: "#fff",
-                            }
-                          : undefined
-                      }
-                    >
-                      <td>{tela.nombre}</td>
-                      <td>{tela.color}</td>
-                      <td>{tela.proveedor}</td>
-                      <td>{tela.precio_metro}</td>
-                      <td>{tela.metros_disponibles}</td>
-                      <td>{tela.stock_minimo}</td>
-                      <td>
-                        <div className="d-flex flex-column flex-sm-row gap-2">
-                          <label
-                            className="visually-hidden"
-                            htmlFor={`stock-${tela.id}`}
-                          >
-                            Nuevo stock para {tela.nombre}
-                          </label>
-                          <input
-                            id={`stock-${tela.id}`}
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            className="form-control"
-                            value={ajustes[tela.id] ?? ""}
-                            onChange={(e) =>
-                              setAjustes((actual) => ({
-                                ...actual,
-                                [tela.id]: e.target.value,
-                              }))
-                            }
-                          />
-                          <button
-                            className="btn btn-outline-primary"
-                            disabled={!ajustes[tela.id]}
-                            onClick={() => void guardarStock(tela)}
-                          >
-                            Guardar
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          <div className="d-flex justify-content-between align-items-center">
-            <button
-              className="btn btn-outline-primary"
-              disabled={pagina <= 1 || cargando}
-              onClick={() => setPagina((p) => p - 1)}
-            >
-              Anterior
-            </button>
-            <span>
-              Página {pagina} de {Math.max(1, Math.ceil(total / 20))}
-            </span>
-            <button
-              className="btn btn-outline-primary"
-              disabled={pagina >= Math.ceil(total / 20) || cargando}
-              onClick={() => setPagina((p) => p + 1)}
-            >
-              Siguiente
-            </button>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }

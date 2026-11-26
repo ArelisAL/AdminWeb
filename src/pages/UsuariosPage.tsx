@@ -10,6 +10,10 @@ import {
   type Usuario,
 } from "../api/client";
 import { Link } from "react-router-dom";
+import EncabezadoPagina from "../components/EncabezadoPagina";
+import IconoFC from "../components/IconoFC";
+import InsigniaEstado from "../components/InsigniaEstado";
+import { iniciales } from "../components/iniciales";
 
 const roles: Usuario["rol"][] = [
   "administradora",
@@ -107,115 +111,209 @@ export default function UsuariosPage({ actual }: { actual: Usuario }) {
     }
   };
 
+  const tonosAvatar = ["rosa", "celeste", "menta", "amarillo", "lila"];
+
   return (
-    <main className="container py-4">
-      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
-        <div>
-          <h1 className="h2 mb-1" style={{ color: "var(--fc-titulo)" }}>
-            Usuarios del taller
-          </h1>
-          <p className="mb-0">Sesión: {actual.nombre} · Administradora</p>
-          <Link className="btn btn-outline-primary mt-2" to="/pedidos">
-            Fechas de entrega
-          </Link>
-          <Link className="btn btn-outline-primary mt-2 ms-2" to="/inventario">
-            Inventario
-          </Link>
-          <Link className="btn btn-outline-primary mt-2 ms-2" to="/pagos">
-            Pagos
-          </Link>
-        </div>
-      </div>
+    <main className="fc-page">
+      <EncabezadoPagina
+        etiqueta="EQUIPO"
+        titulo="Usuarios del taller"
+        descripcion={<>Sesión: {actual.nombre} · Administradora</>}
+        acciones={
+          <>
+            <Link className="btn btn-outline-primary" to="/pedidos">
+              Fechas de entrega
+            </Link>
+            <Link className="btn btn-outline-primary" to="/inventario">
+              Inventario
+            </Link>
+            <Link className="btn btn-outline-primary" to="/pagos">
+              Pagos
+            </Link>
+          </>
+        }
+      />
       {error && (
-        <div
-          className="alert"
-          role="alert"
-          style={{ backgroundColor: "var(--fc-error)", color: "#fff" }}
-        >
-          {error}
+        <div className="alert alert-danger fc-alert" role="alert">
+          <IconoFC nombre="alerta" size={18} />
+          <span>{error}</span>
         </div>
       )}
       {telasBajas.length > 0 && (
-        <section
-          className="alert mb-4"
-          role="status"
-          style={{ backgroundColor: "var(--fc-error)", color: "#fff" }}
-        >
-          <h2 className="h5">Alerta: telas con stock bajo</h2>
-          <ul className="mb-0">
-            {telasBajas.map((tela) => (
-              <li key={tela.id}>
-                {tela.nombre} ({tela.color}): {tela.metros_disponibles} m;
-                mínimo {tela.stock_minimo} m
-              </li>
-            ))}
-          </ul>
+        <section className="fc-alert-panel" role="status">
+          <IconoFC nombre="alerta" size={22} />
+          <div>
+            <h2>Alerta: telas con stock bajo</h2>
+            <ul className="mb-0">
+              {telasBajas.map((tela) => (
+                <li key={tela.id}>
+                  {tela.nombre} ({tela.color}): {tela.metros_disponibles} m;
+                  mínimo {tela.stock_minimo} m
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       )}
       {mensaje && (
-        <div
-          className="alert"
-          role="status"
-          style={{
-            background: "var(--fc-verde-menta)",
-            color: "var(--fc-texto)",
-          }}
-        >
-          {mensaje}
+        <div className="alert alert-success fc-alert" role="status">
+          <IconoFC nombre="cheque" size={18} />
+          <span>{mensaje}</span>
         </div>
       )}
-      <section className="card border-0 shadow-sm mb-4">
-        <div className="card-body">
-          <h2 className="h5" style={{ color: "var(--fc-titulo)" }}>
-            {seleccionado ? "Editar usuario" : "Crear usuario"}
-          </h2>
-          <form onSubmit={enviar} className="row g-3">
-            <div className="col-12 col-md-4">
-              <label className="form-label">
-                Nombre
-                <input
-                  className="form-control"
-                  required
-                  maxLength={100}
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="col-12 col-md-4">
-              <label className="form-label">
-                Correo
-                <input
-                  className="form-control"
-                  required
-                  type="email"
-                  value={correo}
-                  onChange={(e) => setCorreo(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="col-12 col-md-4">
-              <label className="form-label">
-                Rol
-                <select
-                  className="form-select"
-                  value={rol}
-                  onChange={(e) => setRol(e.target.value as Usuario["rol"])}
-                >
-                  {roles.map((opcion) => (
-                    <option key={opcion} value={opcion}>
-                      {opcion}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+      <div className="fc-split">
+        <section className="fc-split__main" aria-labelledby="usuarios-lista">
+          <div className="fc-table-card">
+            <h2 id="usuarios-lista" className="fc-table-card__title">
+              Listado ({total})
+            </h2>
+            {cargando ? (
+              <p className="fc-table-card__empty" aria-live="polite">
+                Cargando usuarios…
+              </p>
+            ) : (
+              <div className="table-responsive">
+                <table className="table fc-table align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Correo</th>
+                      <th>Rol</th>
+                      <th>Estado</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usuarios.map((usuario, indice) => (
+                      <tr
+                        key={usuario.id}
+                        className={
+                          seleccionado?.id === usuario.id ? "is-selected" : ""
+                        }
+                      >
+                        <td>
+                          <span className="fc-person">
+                            <span
+                              className={`fc-avatar fc-avatar--${usuario.activo ? tonosAvatar[indice % tonosAvatar.length] : "gris"}`}
+                              aria-hidden="true"
+                            >
+                              {iniciales(usuario.nombre)}
+                            </span>
+                            <strong>{usuario.nombre}</strong>
+                          </span>
+                        </td>
+                        <td>{usuario.email}</td>
+                        <td>
+                          <span className="fc-tag">{usuario.rol}</span>
+                        </td>
+                        <td>
+                          <InsigniaEstado
+                            tono={usuario.activo ? "activo" : "inactivo"}
+                          >
+                            {usuario.activo ? "Activo" : "Desactivado"}
+                          </InsigniaEstado>
+                        </td>
+                        <td>
+                          <div className="d-flex flex-wrap gap-2">
+                            <button
+                              className="btn btn-sm btn-outline-primary fc-btn-icon"
+                              onClick={() => editar(usuario)}
+                            >
+                              <IconoFC nombre="editar" size={16} />
+                              Editar
+                            </button>
+                            {usuario.activo && usuario.id !== actual.id && (
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => void desactivar(usuario)}
+                              >
+                                Desactivar
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          <div className="fc-pagination">
+            <button
+              className="fc-link-btn"
+              disabled={pagina <= 1 || cargando}
+              onClick={() => setPagina((p) => p - 1)}
+            >
+              Anterior
+            </button>
+            <span className="fc-pagination__current">
+              Página {pagina} de {Math.max(1, Math.ceil(total / 20))}
+            </span>
+            <button
+              className="fc-link-btn"
+              disabled={pagina >= Math.ceil(total / 20) || cargando}
+              onClick={() => setPagina((p) => p + 1)}
+            >
+              Siguiente
+            </button>
+          </div>
+        </section>
+        <section
+          className="fc-panel fc-split__side"
+          aria-labelledby="usuario-form"
+        >
+          <div className="fc-panel__person">
+            {seleccionado && (
+              <span className="fc-avatar fc-avatar--celeste" aria-hidden="true">
+                {iniciales(seleccionado.nombre)}
+              </span>
+            )}
+            <h2 id="usuario-form" className="fc-panel__heading">
+              {seleccionado ? "Editar usuario" : "Crear usuario"}
+            </h2>
+          </div>
+          <form onSubmit={enviar} className="fc-form">
+            <label className="form-label">
+              Nombre
+              <input
+                className="form-control"
+                required
+                maxLength={100}
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+              />
+            </label>
+            <label className="form-label">
+              Correo
+              <input
+                className="form-control"
+                required
+                type="email"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+              />
+            </label>
+            <label className="form-label">
+              Rol
+              <select
+                className="form-select"
+                value={rol}
+                onChange={(e) => setRol(e.target.value as Usuario["rol"])}
+              >
+                {roles.map((opcion) => (
+                  <option key={opcion} value={opcion}>
+                    {opcion}
+                  </option>
+                ))}
+              </select>
+            </label>
             {!seleccionado && (
-              <div className="col-12 col-md-6">
+              <div>
                 <label className="form-label" htmlFor="contrasena-temporal">
                   Contraseña temporal
                 </label>
-                <div className="input-group">
+                <div className="fc-input-action">
                   <input
                     id="contrasena-temporal"
                     className="form-control"
@@ -227,10 +325,14 @@ export default function UsuariosPage({ actual }: { actual: Usuario }) {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                   <button
-                    className="btn btn-outline-primary"
+                    className="fc-link-btn"
                     type="button"
                     onClick={() => setMostrarPassword((visible) => !visible)}
-                    aria-label={mostrarPassword ? "Ocultar contraseña temporal" : "Mostrar contraseña temporal"}
+                    aria-label={
+                      mostrarPassword
+                        ? "Ocultar contraseña temporal"
+                        : "Mostrar contraseña temporal"
+                    }
                     aria-pressed={mostrarPassword}
                   >
                     {mostrarPassword ? "Ocultar" : "Mostrar"}
@@ -238,100 +340,23 @@ export default function UsuariosPage({ actual }: { actual: Usuario }) {
                 </div>
               </div>
             )}
-            <div className="col-12 d-flex gap-2">
-              <button className="btn btn-primary" type="submit">
-                {seleccionado ? "Guardar cambios" : "Crear usuario"}
-              </button>
+            <div className="fc-form__actions">
               {seleccionado && (
                 <button
-                  className="btn btn-outline-secondary"
-                  style={{
-                    color: "var(--fc-gris-violeta)",
-                    borderColor: "var(--fc-gris-violeta)",
-                  }}
+                  className="btn btn-outline-primary"
                   type="button"
                   onClick={limpiar}
                 >
                   Cancelar
                 </button>
               )}
+              <button className="btn btn-primary" type="submit">
+                {seleccionado ? "Guardar cambios" : "Crear usuario"}
+              </button>
             </div>
           </form>
-        </div>
-      </section>
-      <section className="card border-0 shadow-sm">
-        <div className="card-body">
-          <h2 className="h5" style={{ color: "var(--fc-titulo)" }}>
-            Listado ({total})
-          </h2>
-          {cargando ? (
-            <p aria-live="polite">Cargando usuarios…</p>
-          ) : (
-            <div className="table-responsive">
-              <table className="table align-middle">
-                <thead>
-                  <tr>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usuarios.map((usuario) => (
-                    <tr key={usuario.id}>
-                      <td>{usuario.nombre}</td>
-                      <td>{usuario.email}</td>
-                      <td>{usuario.rol}</td>
-                      <td>{usuario.activo ? "Activo" : "Desactivado"}</td>
-                      <td className="d-flex flex-wrap gap-2">
-                        <button
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => editar(usuario)}
-                        >
-                          Editar
-                        </button>
-                        {usuario.activo && usuario.id !== actual.id && (
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            style={{
-                              color: "var(--fc-error)",
-                              borderColor: "var(--fc-error)",
-                            }}
-                            onClick={() => void desactivar(usuario)}
-                          >
-                            Desactivar
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          <div className="d-flex justify-content-between align-items-center">
-            <button
-              className="btn btn-outline-primary"
-              disabled={pagina <= 1 || cargando}
-              onClick={() => setPagina((p) => p - 1)}
-            >
-              Anterior
-            </button>
-            <span>
-              Página {pagina} de {Math.max(1, Math.ceil(total / 20))}
-            </span>
-            <button
-              className="btn btn-outline-primary"
-              disabled={pagina >= Math.ceil(total / 20) || cargando}
-              onClick={() => setPagina((p) => p + 1)}
-            >
-              Siguiente
-            </button>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }

@@ -5,6 +5,7 @@ import {
   mensajeError,
   type OpcionTelaConsumo,
 } from "../api/client";
+import IconoFC from "../components/IconoFC";
 
 type FilaConsumo = { tela: string; metros: string };
 
@@ -69,9 +70,11 @@ export default function EditorConsumosPedidoAdmin({
   }
 
   return (
-    <form className="border rounded p-3 mt-3" onSubmit={(e) => void guardar(e)}>
-      <h3 className="h6">Capturar o actualizar consumos</h3>
-      <p className="small text-muted">
+    <form className="fc-panel fc-consumos" onSubmit={(e) => void guardar(e)}>
+      <h3 className="fc-panel__title">
+        <IconoFC nombre="carrete" size={20} /> Capturar o actualizar consumos
+      </h3>
+      <p className="fc-small">
         Guardar otra vez sustituye la propuesta pendiente y conserva el
         historial. No descuenta tela todavía.
       </p>
@@ -131,12 +134,13 @@ export default function EditorConsumosPedidoAdmin({
           <div className="col-4 col-md-2 d-flex align-items-end">
             <button
               type="button"
-              className="btn btn-outline-danger w-100"
+              className="btn btn-sm btn-outline-danger w-100 fc-btn-icon"
               disabled={filas.length === 1}
               onClick={() =>
                 setFilas((actuales) => actuales.filter((_, i) => i !== indice))
               }
             >
+              <IconoFC nombre="alerta" size={16} />
               Quitar
             </button>
           </div>
@@ -145,12 +149,13 @@ export default function EditorConsumosPedidoAdmin({
       {telas.length === 0 && <p>No hay telas disponibles en el inventario.</p>}
       <div className="d-flex flex-wrap gap-2 mt-3">
         <button
-          className="btn btn-outline-primary"
+          className="fc-link-btn fc-btn-icon me-auto"
           type="button"
           onClick={() =>
             setFilas((actuales) => [...actuales, { tela: "", metros: "" }])
           }
         >
+          <IconoFC nombre="mas" size={18} />
           Agregar tela
         </button>
         <button
