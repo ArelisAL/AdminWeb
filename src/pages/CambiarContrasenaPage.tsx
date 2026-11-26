@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { cambiarContrasena, mensajeError } from "../api/client";
+import logo from "../assets/logo-fran-costuras.png";
+import IconoFC from "../components/IconoFC";
 
 export default function CambiarContrasenaPage({
   onCorrecto,
@@ -28,31 +30,35 @@ export default function CambiarContrasenaPage({
   };
 
   return (
-    <main className="container d-flex justify-content-center py-5">
-      <section
-        className="login-card rounded-4 p-4 shadow"
-        style={{ background: "var(--fc-blanco-lavanda)" }}
-      >
-        <h1 className="h3 mb-3" style={{ color: "var(--fc-titulo)" }}>
-          Actualiza tu contraseña
-        </h1>
-        <p>Debes cambiar la contraseña temporal antes de continuar.</p>
-        {error && (
-          <div
-            className="alert"
-            role="alert"
-            style={{ backgroundColor: "var(--fc-error)", color: "#fff" }}
-          >
-            {error}
+    <main className="auth-page auth-page-admin">
+      <section className="auth-story" aria-label="Fran-Costuras administración">
+        <div className="auth-logo-card">
+          <img src={logo} alt="Fran-Costuras — Diseña, Cose, Crea" />
+        </div>
+      </section>
+      <div className="auth-form-panel">
+        <section className="auth-card" aria-labelledby="cambio-title">
+          <div className="auth-pill">
+            <IconoFC nombre="candado" size={14} /> Primer ingreso
           </div>
-        )}
-        <form onSubmit={enviar} className="d-grid gap-3">
-          <div>
+          <h1 id="cambio-title" className="auth-title">
+            Actualiza tu contraseña
+          </h1>
+          <div className="auth-notice">
+            <IconoFC nombre="alerta" size={18} />
+            <p>Debes cambiar la contraseña temporal antes de continuar.</p>
+          </div>
+          {error && (
+            <div className="auth-error" role="alert">
+              <IconoFC nombre="alerta" size={16} />
+              <span>{error}</span>
+            </div>
+          )}
+          <form onSubmit={enviar} className="auth-form">
             <label htmlFor="contrasena-temporal">Contraseña temporal</label>
-            <div className="input-group mt-1">
+            <div className="auth-control">
               <input
                 id="contrasena-temporal"
-                className="form-control"
                 type={mostrarActual ? "text" : "password"}
                 autoComplete="current-password"
                 required
@@ -60,22 +66,23 @@ export default function CambiarContrasenaPage({
                 onChange={(e) => setActual(e.target.value)}
               />
               <button
-                className="btn btn-outline-primary"
+                className="auth-toggle"
                 type="button"
                 onClick={() => setMostrarActual((visible) => !visible)}
-                aria-label={mostrarActual ? "Ocultar contraseña temporal" : "Mostrar contraseña temporal"}
+                aria-label={
+                  mostrarActual
+                    ? "Ocultar contraseña temporal"
+                    : "Mostrar contraseña temporal"
+                }
                 aria-pressed={mostrarActual}
               >
                 {mostrarActual ? "Ocultar" : "Mostrar"}
               </button>
             </div>
-          </div>
-          <div>
             <label htmlFor="nueva-contrasena">Nueva contraseña</label>
-            <div className="input-group mt-1">
+            <div className="auth-control">
               <input
                 id="nueva-contrasena"
-                className="form-control"
                 type={mostrarNueva ? "text" : "password"}
                 autoComplete="new-password"
                 required
@@ -84,21 +91,29 @@ export default function CambiarContrasenaPage({
                 onChange={(e) => setNueva(e.target.value)}
               />
               <button
-                className="btn btn-outline-primary"
+                className="auth-toggle"
                 type="button"
                 onClick={() => setMostrarNueva((visible) => !visible)}
-                aria-label={mostrarNueva ? "Ocultar nueva contraseña" : "Mostrar nueva contraseña"}
+                aria-label={
+                  mostrarNueva
+                    ? "Ocultar nueva contraseña"
+                    : "Mostrar nueva contraseña"
+                }
                 aria-pressed={mostrarNueva}
               >
                 {mostrarNueva ? "Ocultar" : "Mostrar"}
               </button>
             </div>
-          </div>
-          <button className="btn btn-primary" disabled={cargando}>
-            {cargando ? "Guardando…" : "Cambiar contraseña"}
-          </button>
-        </form>
-      </section>
+            <button className="auth-submit" disabled={cargando}>
+              {cargando ? "Guardando…" : "Cambiar contraseña"}
+            </button>
+          </form>
+        </section>
+        <div className="auth-footnote">
+          <IconoFC nombre="candado" size={16} /> Tu sesión se cierra sola tras
+          30 minutos sin uso.
+        </div>
+      </div>
     </main>
   );
 }

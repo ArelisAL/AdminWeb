@@ -19,6 +19,9 @@ import {
   confirmarInicioPedido,
 } from "../api/client";
 import EditorConsumosPedidoAdmin from "./EditorConsumosPedidoAdmin";
+import EncabezadoPagina from "../components/EncabezadoPagina";
+import IconoFC from "../components/IconoFC";
+import InsigniaEstado from "../components/InsigniaEstado";
 
 function fechaLocal() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -188,30 +191,30 @@ export default function PedidosAdminPage() {
   }
 
   return (
-    <main className="container py-4">
-      <h1 className="h2 mb-3" style={{ color: "var(--fc-titulo)" }}>
-        Fechas de entrega
-      </h1>
+    <main className="fc-page">
+      <EncabezadoPagina etiqueta="PRODUCCIÓN" titulo="Fechas de entrega" />
       {error && (
-        <div className="alert alert-danger" role="alert">
-          {error}
+        <div className="alert alert-danger fc-alert" role="alert">
+          <IconoFC nombre="alerta" size={18} />
+          <span>{error}</span>
         </div>
       )}
       {mensaje && (
-        <div className="alert alert-success" role="status">
-          {mensaje}
+        <div className="alert alert-success fc-alert" role="status">
+          <IconoFC nombre="cheque" size={18} />
+          <span>{mensaje}</span>
         </div>
       )}
-      <section className="card border-0 shadow-sm">
-        <div className="card-body">
-          <h2 className="h5" style={{ color: "var(--fc-titulo)" }}>
-            Pedidos activos ({total})
-          </h2>
+      <section>
+        <div className="fc-table-card">
+          <h2 className="fc-table-card__title">Pedidos activos ({total})</h2>
           {cargando ? (
-            <p aria-live="polite">Cargando pedidos…</p>
+            <p className="fc-table-card__empty" aria-live="polite">
+              Cargando pedidos…
+            </p>
           ) : (
             <div className="table-responsive">
-              <table className="table align-middle">
+              <table className="table fc-table align-middle mb-0">
                 <thead>
                   <tr>
                     <th>Código</th>
@@ -227,8 +230,16 @@ export default function PedidosAdminPage() {
                 <tbody>
                   {pedidos.map((pedido) => (
                     <Fragment key={pedido.id}>
-                      <tr>
-                        <td>{pedido.codigo}</td>
+                      <tr
+                        className={
+                          pedidoConsumosAbierto === pedido.codigo
+                            ? "is-selected"
+                            : ""
+                        }
+                      >
+                        <td>
+                          <strong>{pedido.codigo}</strong>
+                        </td>
                         <td>{pedido.cliente_nombre}</td>
                         <td>{pedido.prenda_nombre}</td>
                         <td>
@@ -327,14 +338,17 @@ export default function PedidosAdminPage() {
                             </button>
                           </form>
                         </td>
-                        <td>{pedido.estado}</td>
+                        <td>
+                          <InsigniaEstado estado={pedido.estado} />
+                        </td>
                         <td>
                           {pedido.estado === "PENDIENTE" && (
                             <button
                               type="button"
-                              className="btn btn-outline-primary btn-sm"
+                              className="btn btn-outline-primary btn-sm fc-btn-icon"
                               onClick={() => void verConsumos(pedido)}
                             >
+                              <IconoFC nombre="carrete" size={16} />
                               {pedidoConsumosAbierto === pedido.codigo
                                 ? "Ocultar consumos"
                                 : "Revisar consumos"}
@@ -343,7 +357,7 @@ export default function PedidosAdminPage() {
                         </td>
                       </tr>
                       {pedidoConsumosAbierto === pedido.codigo && (
-                        <tr>
+                        <tr className="fc-detail-row">
                           <td colSpan={8}>
                             {cargandoConsumos === pedido.codigo ? (
                               <p aria-live="polite">Cargando consumos…</p>
@@ -412,26 +426,28 @@ export default function PedidosAdminPage() {
               </table>
             </div>
           )}
-          {!cargando && pedidos.length === 0 && <p>No hay pedidos activos.</p>}
-          <div className="d-flex justify-content-between align-items-center">
-            <button
-              className="btn btn-outline-primary"
-              disabled={pagina <= 1 || cargando}
-              onClick={() => setPagina((p) => p - 1)}
-            >
-              Anterior
-            </button>
-            <span>
-              Página {pagina} de {Math.max(1, Math.ceil(total / 20))}
-            </span>
-            <button
-              className="btn btn-outline-primary"
-              disabled={pagina >= Math.ceil(total / 20) || cargando}
-              onClick={() => setPagina((p) => p + 1)}
-            >
-              Siguiente
-            </button>
-          </div>
+          {!cargando && pedidos.length === 0 && (
+            <p className="fc-table-card__empty">No hay pedidos activos.</p>
+          )}
+        </div>
+        <div className="fc-pagination">
+          <button
+            className="fc-link-btn"
+            disabled={pagina <= 1 || cargando}
+            onClick={() => setPagina((p) => p - 1)}
+          >
+            Anterior
+          </button>
+          <span className="fc-pagination__current">
+            Página {pagina} de {Math.max(1, Math.ceil(total / 20))}
+          </span>
+          <button
+            className="fc-link-btn"
+            disabled={pagina >= Math.ceil(total / 20) || cargando}
+            onClick={() => setPagina((p) => p + 1)}
+          >
+            Siguiente
+          </button>
         </div>
       </section>
     </main>
