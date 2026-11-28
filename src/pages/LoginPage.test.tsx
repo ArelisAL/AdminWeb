@@ -40,8 +40,8 @@ describe("LoginPage de AdminWeb", () => {
     const onAutenticado = vi.fn();
     render(<LoginPage onAutenticado={onAutenticado} />);
     expect(
-      screen.getByRole("button", { name: /Continuar con Google/i }),
-    ).toHaveProperty("disabled", true);
+      screen.queryByRole("button", { name: /Continuar con Google/i }),
+    ).toBeNull();
 
     await userEvent.type(
       screen.getByLabelText(/Correo electrónico/i),
